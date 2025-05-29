@@ -418,8 +418,8 @@ export default function MainScreen(): React.JSX.Element {
 								instanceofSingleArtistResponse(user)
 									? user.images[0].url
 									: playlistContent instanceof Array
-									? "/liked.png"
-									: playlistContent.images[0].url
+										? "/liked.png"
+										: playlistContent.images[0].url
 							}
 							className="h-48 w-48 rounded-md object-contain md:h-48 md:w-48 lg:h-56 lg:w-56"
 							width={300}
@@ -431,10 +431,10 @@ export default function MainScreen(): React.JSX.Element {
 							<h1 className="mt-5 text-3xl font-bold text-gray-200 sm:text-lg md:text-2xl lg:text-4xl">
 								{instanceofSingleArtistResponse(user)
 									? // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-									  user?.name ?? ""
+										(user?.name ?? "")
 									: playlistContent instanceof Array
-									? "Liked Songs"
-									: playlistContent.name}
+										? "Liked Songs"
+										: playlistContent.name}
 							</h1>
 							{instanceofSinglePlaylistResponse(playlistContent) && playlistContent.description && (
 								<p className="mt-2 hidden text-sm font-semibold text-gray-300 lg:block">
@@ -474,7 +474,7 @@ export default function MainScreen(): React.JSX.Element {
 						{instanceofSinglePlaylistResponse(playlistContent)
 							? playlistContent.tracks.items.map((track, index) => (
 									<Song track={track} index={index} key={track.track?.id} />
-							  ))
+								))
 							: playlistContent.map((track, index) => (
 									<Song
 										// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -483,7 +483,7 @@ export default function MainScreen(): React.JSX.Element {
 										index={index}
 										key={"track" in track ? track.track.id : track.id}
 									/>
-							  ))}
+								))}
 					</div>
 				</div>
 			)}

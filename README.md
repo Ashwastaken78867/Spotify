@@ -23,7 +23,6 @@
 
 ![Demo](./public/demo.gif)
 
-
 # Setup
 
 ```bash
