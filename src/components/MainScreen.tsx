@@ -214,38 +214,35 @@ export default function MainScreen(): React.JSX.Element {
 		}
 	}, [session, spotifyApi]);
 
-React.useEffect((): void => {
+	React.useEffect((): void => {
+		if (spotifyApi.getAccessToken()) {
+			const options = { limit: 50, offset: 0 };
+			spotifyApi
+				.getFeaturedPlaylists(options)
+				.then((data) => {
+					setFeaturedPlaylists(data.body.playlists.items); // Correct type: PlaylistObjectSimplified[]
+				})
+				.catch((error) => {
+					console.error("Error fetching featured playlists:", error);
+				});
+		}
+	}, [session, spotifyApi]);
 
-  if (spotifyApi.getAccessToken()) {
-    const options = { limit: 50, offset: 0 };
-    spotifyApi
-      .getFeaturedPlaylists(options)
-      .then((data) => {
-        setFeaturedPlaylists(data.body.playlists.items); // Correct type: PlaylistObjectSimplified[]
-      })
-      .catch((error) => {
-        console.error("Error fetching featured playlists:", error);
-      });
-  }
-}, [session, spotifyApi]);
-
-
-React.useEffect((): void => {
-  if (spotifyApi.getAccessToken()) {
-    const options = { limit: 50, offset: 0 };
-    void spotifyApi.search("mix", ["playlist"], options).then((data) => {
-      const playlists = data?.body?.playlists?.items || [];
-      const mixes = playlists.filter(
-        (playlist) => playlist?.owner?.id === "spotify"
-      );
-      setMixes(mixes);
-    }).catch((err) => {
-      console.error("Failed to fetch mixes:", err);
-    });
-  }
-}, [session, spotifyApi]);
-
-
+	React.useEffect((): void => {
+		if (spotifyApi.getAccessToken()) {
+			const options = { limit: 50, offset: 0 };
+			void spotifyApi
+				.search("mix", ["playlist"], options)
+				.then((data) => {
+					const playlists = data?.body?.playlists?.items || [];
+					const mixes = playlists.filter((playlist) => playlist?.owner?.id === "spotify");
+					setMixes(mixes);
+				})
+				.catch((err) => {
+					console.error("Failed to fetch mixes:", err);
+				});
+		}
+	}, [session, spotifyApi]);
 
 	const HandleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
 		if (e.target.value.trim() === "") return;
@@ -281,58 +278,47 @@ React.useEffect((): void => {
 						</div>
 					</div>
 
-<div className="mt-5 flex flex-grow flex-col items-center overflow-y-auto scrollbar-hide">
-  {searchResults?.tracks?.items
-    .filter((item): item is NonNullable<typeof item> => item != null)
-    .map((item) => (
-      <SearchCard
-        item={item}
-        callback={(): void => setTrackID(item.id)}
-        key={item.id}
-      />
-    ))}
+					<div className="mt-5 flex flex-grow flex-col items-center overflow-y-auto scrollbar-hide">
+						{searchResults?.tracks?.items
+							.filter((item): item is NonNullable<typeof item> => item != null)
+							.map((item) => (
+								<SearchCard item={item} callback={(): void => setTrackID(item.id)} key={item.id} />
+							))}
 
-  {searchResults?.playlists?.items
-    .filter((item): item is NonNullable<typeof item> => item != null)
-    .map((item) => (
-      <SearchCard
-        /* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
-        // @ts-expect-error
-        item={{ ...item, album: item }}
-        callback={(): void => {
-          setSearch(false);
-          setPlaylistID(item.id);
-          setPlaylistHistory((prev) => [...prev, item.id]);
-          setPlaylistContent(undefined);
-          setHeaderOpacity("bg-opacity-100");
-        }}
-        key={item.id}
-      />
-    ))}
+						{searchResults?.playlists?.items
+							.filter((item): item is NonNullable<typeof item> => item != null)
+							.map((item) => (
+								<SearchCard
+									/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
+									// @ts-expect-error
+									item={{ ...item, album: item }}
+									callback={(): void => {
+										setSearch(false);
+										setPlaylistID(item.id);
+										setPlaylistHistory((prev) => [...prev, item.id]);
+										setPlaylistContent(undefined);
+										setHeaderOpacity("bg-opacity-100");
+									}}
+									key={item.id}
+								/>
+							))}
 
-  {searchResults?.artists?.items
-    .filter((item): item is NonNullable<typeof item> => item != null)
-    .map((item) => (
-      <SearchCard
-        /* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
-        // @ts-expect-error
-        item={{ ...item, album: item }}
-        callback={(): void => {
-          setSearch(false);
-          setPlaylistID(`artist ${item.id}`);
-          setPlaylistHistory((prev) => [...prev, `artist ${item.id}`]);
-          setPlaylistContent(undefined);
-          setHeaderOpacity("bg-opacity-100");
-        }}
-        key={item.id}
-      />
-    
-
-
-					
-
-
-
+						{searchResults?.artists?.items
+							.filter((item): item is NonNullable<typeof item> => item != null)
+							.map((item) => (
+								<SearchCard
+									/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
+									// @ts-expect-error
+									item={{ ...item, album: item }}
+									callback={(): void => {
+										setSearch(false);
+										setPlaylistID(`artist ${item.id}`);
+										setPlaylistHistory((prev) => [...prev, `artist ${item.id}`]);
+										setPlaylistContent(undefined);
+										setHeaderOpacity("bg-opacity-100");
+									}}
+									key={item.id}
+								/>
 							))}
 					</div>
 				</>
