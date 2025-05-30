@@ -82,8 +82,8 @@ export default function MainScreen(): React.JSX.Element {
 	const [search, setSearch] = useRecoilState(searchAtomState);
 	const setTrackID = useRecoilState(TrackIDAtomState)[1];
 	const [searchResults, setSearchResults] = React.useState<SpotifyApi.SearchResponse>();
-	const [mixes, setMixes] = React.useState<SpotifyApi.PlaylistObjectSimplified[]>([]);
-	const [featuredPlaylists, setFeaturedPlaylists] = React.useState<SpotifyApi.PlaylistObjectSimplified[]>();
+	const [mixes] = React.useState<SpotifyApi.PlaylistObjectSimplified[]>([]);
+	const [featuredPlaylists] = React.useState<SpotifyApi.PlaylistObjectSimplified[]>();
 	const DailyMixContent = useRecoilState<SpotifyApi.PlaylistObjectSimplified[]>(DailyMixAtomState)[0];
 	const [topArtists, setTopArtists] = React.useState<SpotifyApi.ArtistObjectFull[]>();
 	const [recentlyPlayed, setRecentlyPlayed] = React.useState<SpotifyApi.PlayHistoryObject[]>();
@@ -99,7 +99,8 @@ export default function MainScreen(): React.JSX.Element {
 		// @ts-expect-error
 	>(playlistContentAtomState);
 	const setPlaylistHistory = useRecoilState(playlistHistoryAtomState)[1];
-	const [user, setUser] = React.useState<SpotifyApi.UserProfileResponse | SpotifyApi.SingleArtistResponse>();
+	const [user] = React.useState<SpotifyApi.UserProfileResponse | SpotifyApi.SingleArtistResponse>();
+
 	React.useEffect((): void => {
 		if (spotifyApi.getAccessToken() && playlistID) {
 			setColor(colors[Math.floor(Math.random() * colors.length)]);
@@ -189,18 +190,17 @@ export default function MainScreen(): React.JSX.Element {
 		}
 	}, [session, spotifyApi, playlistID]);
 
-	React.useEffect((): void => {
-		if (spotifyApi.getAccessToken() && playlistContent) {
-			if ("owner" in playlistContent) {
-				void spotifyApi.getUser(playlistContent.owner.id).then((data) => setUser(data.body));
-			} else if (playlistID.includes("artist")) {
-				void spotifyApi.getArtist(playlistID.split(" ")[1]).then((data) => setUser(data.body));
-			} else {
-				void spotifyApi.getMe().then((data) => setUser(data.body));
-			}
-		}
-	}, [session, spotifyApi, playlistContent]);
-
+	// React.useEffect((): void => {
+	// 	if (spotifyApi.getAccessToken() && playlistContent) {
+	// 		if ("owner" in playlistContent) {
+	// 			void spotifyApi.getUser(playlistContent.owner.id).then((data) => setUser(data.body));
+	// 		} else if (playlistID.includes("artist")) {
+	// 			void spotifyApi.getArtist(playlistID.split(" ")[1]).then((data) => setUser(data.body));
+	// 		} else {
+	// 			void spotifyApi.getMe().then((data) => setUser(data.body));
+	// 		}
+	// 	}
+	// }, [session, spotifyApi, playlistContent]);
 	React.useEffect((): void => {
 		if (spotifyApi.getAccessToken()) {
 			void spotifyApi.getMyRecentlyPlayedTracks().then((data) => setRecentlyPlayed(data.body.items));
@@ -213,36 +213,25 @@ export default function MainScreen(): React.JSX.Element {
 			});
 		}
 	}, [session, spotifyApi]);
+	// React.useEffect((): void => {
+	// 	if (spotifyApi.getAccessToken()) {
+	// 		const options = { limit: 50, offset: 0, locale: "en_US" };
+	// 		void spotifyApi.getFeaturedPlaylists(options).then((data) => {
+	// 			setFeaturedPlaylists(data.body.playlists.items);
+	// 		});
+	// 	}
+	// },[session, spotifyApi]);
 
-	React.useEffect((): void => {
-		if (spotifyApi.getAccessToken()) {
-			const options = { limit: 50, offset: 0 };
-			spotifyApi
-				.getFeaturedPlaylists(options)
-				.then((data) => {
-					setFeaturedPlaylists(data.body.playlists.items); // Correct type: PlaylistObjectSimplified[]
-				})
-				.catch((error) => {
-					console.error("Error fetching featured playlists:", error);
-				});
-		}
-	}, [session, spotifyApi]);
-
-	React.useEffect((): void => {
-		if (spotifyApi.getAccessToken()) {
-			const options = { limit: 50, offset: 0 };
-			void spotifyApi
-				.search("mix", ["playlist"], options)
-				.then((data) => {
-					const playlists = data?.body?.playlists?.items || [];
-					const mixes = playlists.filter((playlist) => playlist?.owner?.id === "spotify");
-					setMixes(mixes);
-				})
-				.catch((err) => {
-					console.error("Failed to fetch mixes:", err);
-				});
-		}
-	}, [session, spotifyApi]);
+	// React.useEffect((): void => {
+	// 	if (spotifyApi.getAccessToken()) {
+	// 		const options = { limit: 50, offset: 0 };
+	// 		void spotifyApi.search("mix", ["playlist"], options).then((data) => {
+	// 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// 			// @ts-expect-error
+	// 			setMixes(data.body.playlists.items.filter((playlist) => playlist.owner.id === "spotify"));
+	// 		});
+	// 	}
+	// }, [session, spotifyApi]);
 
 	const HandleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
 		if (e.target.value.trim() === "") return;
@@ -277,17 +266,13 @@ export default function MainScreen(): React.JSX.Element {
 							/>
 						</div>
 					</div>
-
 					<div className="mt-5 flex flex-grow flex-col items-center overflow-y-auto scrollbar-hide">
-						{searchResults?.tracks?.items
-							.filter((item): item is NonNullable<typeof item> => item != null)
-							.map((item) => (
+						{searchResults?.tracks &&
+							searchResults.tracks.items.map((item) => (
 								<SearchCard item={item} callback={(): void => setTrackID(item.id)} key={item.id} />
 							))}
-
-						{searchResults?.playlists?.items
-							.filter((item): item is NonNullable<typeof item> => item != null)
-							.map((item) => (
+						{searchResults?.playlists &&
+							searchResults.playlists.items.map((item) => (
 								<SearchCard
 									/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
 									// @ts-expect-error
@@ -302,10 +287,8 @@ export default function MainScreen(): React.JSX.Element {
 									key={item.id}
 								/>
 							))}
-
-						{searchResults?.artists?.items
-							.filter((item): item is NonNullable<typeof item> => item != null)
-							.map((item) => (
+						{searchResults?.artists &&
+							searchResults.artists.items.map((item) => (
 								<SearchCard
 									/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */
 									// @ts-expect-error
@@ -418,8 +401,8 @@ export default function MainScreen(): React.JSX.Element {
 								instanceofSingleArtistResponse(user)
 									? user.images[0].url
 									: playlistContent instanceof Array
-										? "/liked.png"
-										: playlistContent.images[0].url
+									? "/liked.png"
+									: playlistContent.images[0].url
 							}
 							className="h-48 w-48 rounded-md object-contain md:h-48 md:w-48 lg:h-56 lg:w-56"
 							width={300}
@@ -431,10 +414,10 @@ export default function MainScreen(): React.JSX.Element {
 							<h1 className="mt-5 text-3xl font-bold text-gray-200 sm:text-lg md:text-2xl lg:text-4xl">
 								{instanceofSingleArtistResponse(user)
 									? // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-										(user?.name ?? "")
+									  user?.name ?? ""
 									: playlistContent instanceof Array
-										? "Liked Songs"
-										: playlistContent.name}
+									? "Liked Songs"
+									: playlistContent.name}
 							</h1>
 							{instanceofSinglePlaylistResponse(playlistContent) && playlistContent.description && (
 								<p className="mt-2 hidden text-sm font-semibold text-gray-300 lg:block">
@@ -474,7 +457,7 @@ export default function MainScreen(): React.JSX.Element {
 						{instanceofSinglePlaylistResponse(playlistContent)
 							? playlistContent.tracks.items.map((track, index) => (
 									<Song track={track} index={index} key={track.track?.id} />
-								))
+							  ))
 							: playlistContent.map((track, index) => (
 									<Song
 										// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -483,7 +466,7 @@ export default function MainScreen(): React.JSX.Element {
 										index={index}
 										key={"track" in track ? track.track.id : track.id}
 									/>
-								))}
+							  ))}
 					</div>
 				</div>
 			)}

@@ -44,6 +44,7 @@
 		"@typescript-eslint/prefer-namespace-keyword": "error",
 		"@typescript-eslint/triple-slash-reference": "error",
 		"@typescript-eslint/type-annotation-spacing": "error",
+		"@typescript-eslint/restrict-template-expressions": "off",
 		"no-var": "error",
 		"prefer-const": "error"
 	}
